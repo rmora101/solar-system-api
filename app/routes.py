@@ -25,7 +25,7 @@ def validate_planet(planet_id):
     try:
         valid_planet_id = int(planet_id)
     except ValueError:
-        return abort(make_response({f"Message" : "Invalid id: {planet_id}"}, 400))
+        return abort(make_response({"Message" : f"Invalid id: {planet_id}"}, 400))
     
     return Planet.query.get_or_404(valid_planet_id)
 
@@ -54,7 +54,7 @@ def get_planets():
             "id": planet.id,
             "name": planet.name,
             "description": planet.description,
-            "number of moons": planet.number_of_moons
+            "number_of_moons": planet.number_of_moons
 
         }
 
@@ -68,3 +68,27 @@ def get_one_planet(id):
     planet = validate_planet(id)
     
     return planet.to_dict(), 200
+
+@planets_bp.route("/<id>", methods = ["PUT"])
+def update_planet(id):
+
+    planet = validate_planet(id)
+
+    request_data = request.get_json()
+
+    planet.name = request_data["name"]
+    planet.description = request_data["description"]
+    planet.number_of_moons = request_data["number_of_moons"]
+
+    db.session.commit()
+
+    return {"msg": f"planet {id} successfully updated"}, 200
+
+@planets_bp.route("/<id>", methods = ["DELETE"])
+def delete_planet(id):
+    planet = validate_planet(id)
+
+    db.session.delete(planet)
+    db.session.commit()
+
+    return {"msg": f" planet {id} deleted"}, 200
