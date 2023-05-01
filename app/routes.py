@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import abort, Blueprint, jsonify, make_response, request
 from app import db
 from app.models.planet import Planet
 
@@ -20,6 +20,14 @@ from app.models.planet import Planet
 # planet9 = Planet(9, "Pluto", "Pluto is a PLANET", 5)
 
 # planet_list = [planet1, planet2, planet3, planet4, planet5, planet6, planet7, planet8, planet9]
+
+def validate_planet(planet_id):
+    try:
+        valid_planet_id = int(planet_id)
+    except ValueError:
+        return abort(make_response({f"Message" : "Invalid id: {planet_id}"}, 400))
+    
+    return Planet.query.get_or_404(valid_planet_id)
 
 planets_bp = Blueprint("planets", __name__, url_prefix="/planets")
 
@@ -54,21 +62,9 @@ def get_planets():
 
     return jsonify(response), 200
 
-# @planets_bp.route("/<id>", methods = ["GET"])
-# def get_one_planet(id): 
+@planets_bp.route("/<id>", methods = ["GET"])
+def get_one_planet(id): 
 
-#     try:
-#         planet.id = int(id)
-#     except ValueError:
-#         return {"message" : "Invalid id"}, 400
+    planet = validate_planet(id)
     
-#     for planet in planet_list:
-#         if planet.id == int(id):
-#             return {
-#             "id": planet.id,
-#             "name": planet.name,
-#             "description": planet.description,
-#             "number of moons": planet.num_of_moons
-#             }, 200
-    
-#     return {"message" : f"{id} not found"}, 404
+    return planet.to_dict(), 200
