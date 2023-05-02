@@ -48,8 +48,17 @@ def add_planet():
 @planets_bp.route("", methods= ["GET"])
 def get_planets():
     response = []
-    all_planets = Planet.query.all()
-    for planet in all_planets:
+
+    name_query = request.args.get("name")
+    moons_query = request.args.get("number_of_moons")
+    if moons_query:
+        planets = Planet.query.filter_by(number_of_moons=moons_query)
+    elif name_query:
+        planets = Planet.query.filter_by(name=name_query)
+    else:
+        planets = Planet.query.all()
+
+    for planet in planets:
         planet_dict = {
             "id": planet.id,
             "name": planet.name,
